@@ -1,8 +1,9 @@
 import { Avatar } from "@chakra-ui/avatar";
 import { Image } from "@chakra-ui/image";
 import { Box, Container, HStack, Link, Stack } from "@chakra-ui/layout";
-import { Outlet } from "react-router";
+import { Outlet, useNavigate } from "react-router";
 import { Link as RouterLink, NavLink } from "react-router-dom";
+import Login from "./Login";
 import pgLogo from "../photoGauge_logo.png";
 
 const Dashboard = () => {
@@ -12,7 +13,13 @@ const Dashboard = () => {
     borderRadius: "4px",
   };
   const activeStyle = { ...normalStyle, background: "#3182ce" };
-  const { userName } = JSON.parse(localStorage.getItem("userInfo"));
+  const navigate = useNavigate();
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+
+  if (!userInfo) {
+    return <Login />;
+  }
+
   return (
     <Box sx={{ width: "100%" }}>
       <header>
@@ -46,7 +53,7 @@ const Dashboard = () => {
                 Uploads
               </NavLink>
             </Box>
-            <Avatar name={userName} />
+            <Avatar name={userInfo?.userName} />
           </HStack>
         </Box>
       </header>
