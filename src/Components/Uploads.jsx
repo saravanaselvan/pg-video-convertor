@@ -1,4 +1,5 @@
 import { Box, Text } from "@chakra-ui/layout";
+import { Spinner } from "@chakra-ui/spinner";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/table";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -6,6 +7,7 @@ import { Link } from "react-router-dom";
 
 const Uploads = () => {
   const [conversions, setConversions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const downloadFile = (data, fileName, contentType) => {
     const blob = new Blob([data], { type: contentType });
@@ -43,6 +45,7 @@ const Uploads = () => {
   useEffect(() => {
     const fetchVideoConversions = async () => {
       const { accessToken } = JSON.parse(localStorage.getItem("userInfo"));
+      setIsLoading(true);
       const { data } = await axios.get("/api/video_conversions_list", {
         headers: {
           "Content-Type": "application/json",
@@ -50,10 +53,12 @@ const Uploads = () => {
         },
       });
       setConversions(data.video_conversions);
+      setIsLoading(false);
     };
 
     fetchVideoConversions();
   }, []);
+
   return (
     <Box bg="#fff" h="100vh">
       <Box maxW="1400px" m="auto" p="4rem 5%">
@@ -80,6 +85,19 @@ const Uploads = () => {
             </Tr>
           </Thead>
           <Tbody>
+            {isLoading && (
+              <Tr height="60vh">
+                <Td colspan="5" textAlign="center">
+                  <Spinner
+                    thickness="4px"
+                    speed="0.65s"
+                    emptyColor="gray.200"
+                    color="blue.500"
+                    size="xl"
+                  />
+                </Td>
+              </Tr>
+            )}
             {conversions.map(
               (
                 {
@@ -97,7 +115,12 @@ const Uploads = () => {
                 index,
               ) => (
                 <Tr key={id}>
-                  <Td>
+                  <Td
+                    color="#3182ce"
+                    fontWeight="500"
+                    cursor="pointer"
+                    _hover={{ textDecoration: "underline" }}
+                  >
                     <Link to={`/upload-details/${id}`}>
                       {original_uploaded_file_name}
                     </Link>
@@ -115,7 +138,7 @@ const Uploads = () => {
                         }
                       >
                         <Text
-                          color="teal"
+                          color="#3182ce"
                           fontWeight="500"
                           cursor="pointer"
                           _hover={{ textDecoration: "underline" }}
@@ -129,7 +152,7 @@ const Uploads = () => {
                         }
                       >
                         <Text
-                          color="teal"
+                          color="#3182ce"
                           fontWeight="500"
                           cursor="pointer"
                           _hover={{ textDecoration: "underline" }}
@@ -143,7 +166,11 @@ const Uploads = () => {
                     <Td
                       colSpan="2"
                       textAlign="center"
-                      color={status === "PENDING" ? "red" : "orange"}
+                      color={
+                        status === "PENDING" || status.includes("ERR")
+                          ? "red"
+                          : "orange"
+                      }
                       fontWeight="bold"
                     >
                       {status}

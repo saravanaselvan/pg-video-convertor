@@ -1,18 +1,12 @@
 import { Button } from "@chakra-ui/button";
-import { Checkbox } from "@chakra-ui/checkbox";
 import { Box, Heading, HStack, Text, VStack } from "@chakra-ui/layout";
-import { Select } from "@chakra-ui/select";
-import { useToast } from "@chakra-ui/toast";
 import axios from "axios";
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router";
 
 const UploadDetails = () => {
   const [videoObject, setVideoObject] = useState();
   const [videoConversion, setVideoConversion] = useState();
-  const navigate = useNavigate();
-  const toast = useToast();
 
   const { id } = useParams();
 
@@ -34,7 +28,7 @@ const UploadDetails = () => {
     };
 
     fetchReport();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     const { accessToken } = JSON.parse(localStorage.getItem("userInfo"));
@@ -50,7 +44,7 @@ const UploadDetails = () => {
       setVideoConversion(video_conversion);
     };
     fetchVideoConversion();
-  }, []);
+  }, [id]);
 
   const downloadFile = (data, fileName, contentType) => {
     const blob = new Blob([data], { type: contentType });
@@ -84,6 +78,20 @@ const UploadDetails = () => {
       response.headers["content-type"],
     );
   };
+
+  // const previewReport = async (id) => {
+  //   const response = await axios.get(`/api/report_preview/${id}`, {
+  //     responseType: "blob",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //   });
+  //   downloadFile(
+  //     response.data,
+  //     "report_preview.pdf",
+  //     response.headers["content-type"],
+  //   );
+  // };
   return (
     <Box bg="#fff" h="100vh">
       <Box maxW="1400px" m="auto" p="4rem 5%">
@@ -141,46 +149,72 @@ const UploadDetails = () => {
                 {videoConversion?.param_is_exif_info_captured ? "Yes" : "No"}
               </Text>{" "}
             </code>
-            <Heading as="h3" fontSize="2xl" mb="4">
-              Download
-            </Heading>
             {videoConversion?.status === "COMPLETED" && (
-              <HStack>
-                <Button
-                  colorScheme="blue"
-                  onClick={() =>
-                    viewReport(
-                      videoConversion.id,
-                      "pdf",
-                      videoConversion.output_pdf_file_name,
-                    )
-                  }
-                >
-                  Report PDF
-                </Button>
-                <Button
-                  colorScheme="blue"
-                  onClick={() =>
-                    viewReport(
-                      videoConversion.id,
-                      "yaml",
-                      videoConversion.output_yaml_file_name,
-                    )
-                  }
-                >
-                  Params YAML
-                </Button>
-                {videoConversion.param_is_exif_info_captured && (
+              <>
+                <Heading as="h3" fontSize="2xl" mb="4">
+                  Download
+                </Heading>
+                <HStack>
                   <Button
                     colorScheme="blue"
                     onClick={() =>
-                      viewReport(videoConversion.id, "json", "exif.json")
+                      viewReport(
+                        videoConversion.id,
+                        "pdf",
+                        videoConversion.output_pdf_file_name,
+                      )
                     }
                   >
-                    Exif JSON
+                    Report PDF
                   </Button>
-                )}
-              </HStack>
+                  <Button
+                    colorScheme="blue"
+                    onClick={() =>
+                      viewReport(
+                        videoConversion.id,
+                        "yaml",
+                        videoConversion.output_yaml_file_name,
+                      )
+                    }
+                  >
+                    Params YAML
+                  </Button>
+                  {videoConversion.param_is_exif_info_captured && (
+                    <Button
+                      colorScheme="blue"
+                      onClick={() =>
+                        viewReport(videoConversion.id, "json", "exif.json")
+                      }
+                    >
+                      Exif JSON
+                    </Button>
+                  )}
+                  {/* <Button
+                  colorScheme="blue"
+                  onClick={() => previewReport(videoConversion.id)}
+                >
+                  Preview Report
+                </Button> */}
+                </HStack>
+              </>
+            )}
+            {videoConversion && videoConversion?.status !== "COMPLETED" && (
+              <>
+                <Heading as="h3" fontSize="2xl" mb="4">
+                  Status
+                </Heading>
+                <Box
+                  color={
+                    videoConversion?.status === "PENDING" ||
+                    videoConversion?.status.includes("ERR")
+                      ? "red"
+                      : "orange"
+                  }
+                  fontWeight="bold"
+                >
+                  {videoConversion?.status}
+                </Box>
+              </>
             )}
           </VStack>
         </HStack>
